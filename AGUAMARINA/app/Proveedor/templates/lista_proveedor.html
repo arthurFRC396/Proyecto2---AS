@@ -1,0 +1,35 @@
+{% extends 'list.html' %}
+
+{% block columnas %}
+    <tr>
+        <th scope="col">Nro</th>
+        <th scope="col">Nombre</th>
+        <th scope="col">RUC</th>
+        <th scope="col">Direccion</th>
+        <th scope="col">Telefono</th>
+        <th scope="col">E-Mail</th>
+        <th scope="col">Ingresado</th>
+        <th scope="col">Opciones</th>
+    </tr>
+{% endblock %}
+
+{% block filas %}
+    {% for proveedor in object_list %}
+        <tr>
+            <td>{{ proveedor.id }}</td>
+            <td>{{ proveedor.nombre }}</td>
+            <td>{{ proveedor.ruc }}</td>
+            <td>{{ proveedor.direccion }}</td>
+            <td>{{ proveedor.telefono }}</td>
+            <td>{{ proveedor.correo }}</td>
+            <td>{{ proveedor.ingresado }}</td>
+            <td>
+                <a href="{% url 'Editar proveedor' proveedor.id %}" class="btn btn-warning btn-xs">
+                    <i class="fas fa-edit"></i></a>
+                <a href="{% url 'Eliminar proveedor' proveedor.id %}" class="btn btn-danger btn-xs">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}

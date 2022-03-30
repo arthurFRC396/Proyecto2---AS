@@ -1,0 +1,42 @@
+{% extends 'list.html' %}
+
+{% block columnas %}
+    <tr>
+        <th scope="col">Nro</th>
+        <th scope="col">Nombre</th>
+        <th scope="col">Apellido</th>
+        <th scope="col">Cedula</th>
+        <th scope="col">RUC</th>
+        <th scope="col">Fecha de Nacimiento</th>
+        <th scope="col">Direccion</th>
+        <th scope="col">Telefono</th>
+        <th scope="col">Ingresado</th>
+        <th scope="col">Opciones</th>
+    </tr>
+{% endblock %}
+
+{% block filas %}
+    {% for cliente in object_list %}
+        <tr>
+            <td>{{ cliente.id }}</td>
+            <td>{{ cliente.nombre }}</td>
+            <td>{{ cliente.apellido }}</td>
+            <td>{{ cliente.ci }}</td>
+            <td>{{ cliente.ruc }}</td>
+            <td>{{ cliente.nacimiento }}</td>
+            <td>{{ cliente.direccion }}</td>
+            <td>{{ cliente.telefono }}</td>
+            <td>{{ cliente.ingresado }}</td>
+            <td>
+                <a href="{% url 'Editar clientes' cliente.id %}" class="btn btn-warning btn-xs">
+                    <i class="fas fa-edit"></i></a>
+                <a href="{% url 'Eliminar clientes' cliente.id %}" class="btn btn-danger btn-xs">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+
+
+

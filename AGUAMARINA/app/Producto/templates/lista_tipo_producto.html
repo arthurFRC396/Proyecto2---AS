@@ -1,0 +1,35 @@
+{% extends 'list.html' %}
+
+{% block columnas %}
+    <tr>
+        <th scope="col">Nro</th>
+        <th scope="col">Tipo Producto</th>
+        <th scope="col">Descripcion</th>
+        <th scope="col">Ingresado</th>
+        <th scope="col">Opciones</th>
+    </tr>
+{% endblock %}
+
+{% block filas %}
+    {% for tipoproducto in object_list %}
+        <tr>
+            <td> {{ tipoproducto.id }} </td>
+            <td> {{ tipoproducto.nombre }} </td>
+            <td> {{ tipoproducto.descripcion }} </td>
+            <td> {{ tipoproducto.ingresado }} </td>
+            <td>
+                <a href="{% url 'Editar Tipo De Producto' tipoproducto.id %}" class="btn btn-warning btn-xs">
+                    <i class="fas fa-edit"></i></a>
+                <a href="{% url 'Eliminar Tipo De Producto' tipoproducto.id %}" class="btn btn-danger btn-xs">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </td>
+
+        </tr>
+    {% endfor %}
+
+
+{% endblock %}
+
+
+

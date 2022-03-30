@@ -1,0 +1,32 @@
+{% extends 'list.html' %}
+
+{% block columnas %}
+<tr>
+    <th scope="col" style="width: 10%;">Nro</th>
+    <th scope="col" style="width: 10%;">Nombre</th>
+    <th scope="col" style="width: 10%;">Cédula</th>
+    <th scope="col" style="width: 20%;">Dirección</th>
+    <th scope="col" style="width: 15%;">Telefono</th>
+    <th scope="col" style="width: 20%;">Descripción</th>
+    <th scope="col" style="width: 20%;">opciones</th>
+</tr>
+{% endblock %}
+
+
+
+{% block filas %}
+{% for c in object_list %}
+<tr>
+    <td>{{ c.id }}</td>
+    <td>{{ c.name }}</td>
+    <td>{{ c.cedula }}</td>
+    <td>{{ c.direccion }}</td>
+    <td>{{ c.telefono }}</td>
+    <td>{{ c.desc }}</td>
+    <td>
+        <a href="{% url 'admini:AdminUpdateView' c.id %}" class="btn btn-warning btn-xs"><i class="far fa-edit"></i> editar</a>
+        <a href="{% url 'admini:AdminDeleteView' c.id %}" type="button" class="btn btn-danger btn-xs"><i class="fas fa-trash-alt"></i> borrar</a>
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}

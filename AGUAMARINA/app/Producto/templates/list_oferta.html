@@ -1,0 +1,41 @@
+{% extends 'list.html' %}
+
+{% block columnas %}
+    <tr>
+        <th scope="col">Codigo</th>
+        <th scope="col">Producto</th>
+        <th scope="col">Tipo Producto</th>
+        <th scope="col">% Oferta</th>
+        <th scope="col">Inicio de la oferta</th>
+        <th scope="col">Fin de la oferta</th>
+        <th scope="col">Ingresado</th>
+        <th scope="col">Opciones</th>
+    </tr>
+{% endblock %}
+
+{% block filas %}
+    {% for oferta in oferta_list %}
+        <tr>
+            <td> {{ oferta.producto_cod }} </td>
+            <td> {{ oferta.producto_cod.nombre}} </td>
+            <td> {{ oferta.producto_cod.tipo_producto}} </td>
+            <td> {{ oferta.porcentaje_descuento }} </td>
+            <td> {{ oferta.fecha_inicio_oferta }} </td>
+            <td> {{ oferta.fecha_fin_oferta }} </td>
+            <td> {{ oferta.ingresado }} </td>
+            <td>
+                <a href="{% url 'Editar Oferta' oferta.id %}" class="btn btn-warning btn-xs">
+                    <i class="fas fa-edit"></i></a>
+                <a href="{% url 'Eliminar Oferta' oferta.id %}" class="btn btn-danger btn-xs">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </td>
+
+        </tr>
+    {% endfor %}
+
+
+{% endblock %}
+
+
+
