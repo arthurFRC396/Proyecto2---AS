@@ -1,0 +1,39 @@
+{% extends 'list.html' %}
+
+{% block columnas %}
+    <tr>
+        <th scope="col">Nro</th>
+        <th scope="col">Fecha de emision</th>
+        <th scope="col">Nro Factura</th>
+        <th scope="col">Cantidad</th>
+        <th scope="col">Razon</th>
+        <th scope="col">Total</th>
+        <th scope="col">Direccion</th>
+        <th scope="col">Telefono</th>
+        <th scope="col">Ingresado</th>
+        <th scope="col">Opciones</th>
+    </tr>
+{% endblock %}
+
+{% block filas %}
+    {% for Nota in object_list %}
+        <tr>
+            <td>{{ Nota.id }}</td>
+            <td>{{ Nota.fecha_emision_nota }}</td>
+            <td>{{ Nota.detcompra_datos.id }}</td>  <!-- nro_factura -->
+            <td>{{ Nota.cant }}</td>
+            <td>{{ Nota.desc_nota }}</td>
+            <td>{{ Nota.total }}</td>
+            
+            <!-- <td>{{ Nota.telefono }}</td> -->
+            <!-- <td>{{ Nota.ingresado }}</td> --> -->
+            <!-- <td>
+                <a href="#" class="btn btn-warning btn-xs">
+                    <i class="fas fa-edit"></i></a>
+                <a href="#" class="btn btn-danger btn-xs">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </td> -->
+        </tr>
+    {% endfor %}
+{% endblock %}
