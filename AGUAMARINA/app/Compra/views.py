@@ -7,19 +7,20 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View
 
 # Create your views here.
-from Compra.forms import CompraForm
-from Compra.models import Compra, DetCompra
+from Compra.forms import CompraForm,NotaCompraForm
+from Compra.models import Compra, DetCompra,NotaCreditoCompra
 from Producto.models import Producto
 import json
 import os
 from django.conf import settings
-from django.http import HttpResponse,HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.template.loader import get_template
-#from xhtml2pdf import pisa
+from xhtml2pdf import pisa
+
 
 class CompraListview(ListView):
     model = Compra
-    template_name = 'lista_compra.html'
+    template_name = 'lista_compra_original.html'
 
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
@@ -27,12 +28,14 @@ class CompraListview(ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        
         data = {}
         try:
             action = request.POST['action']
             if action == 'searchdata':
                 data = []
                 for i in Compra.objects.all():
+                    i.id=str(i.id).zfill(6)
                     data.append(i.toJSON())
             elif action == 'search_details_prod':
                 data = []
@@ -44,6 +47,7 @@ class CompraListview(ListView):
             data['error'] = str(e)
         return JsonResponse(data, safe=False)
 
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Listado de Compras'
@@ -51,6 +55,7 @@ class CompraListview(ListView):
         context['create_url'] = reverse_lazy('Agregar compra')
         context['list_url'] = reverse_lazy('Listado de compras')
         context['entity'] = 'Compra'
+
         return context
 
 
@@ -87,10 +92,7 @@ class CompraCreateView(CreateView):
                         det.cant = int(i['cant'])
                         det.price = float(i['precio_costo'])
                         det.subtotal = float(i['subtotal'])
-                        print(det.prod.stock)
                         det.save()
-                        det.prod.stock += det.cant
-                        det.prod.save()
                     data = {'id': compra.id}
             elif action == 'search_products':
                 data = []
@@ -118,6 +120,80 @@ class CompraCreateView(CreateView):
         return context
 
 
+class CompraUpdateView(UpdateView):
+    model = Compra
+    form_class = CompraForm
+    template_name = 'create_compra_edit.html'
+    success_url = reverse_lazy('Listado de compras')
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        data = {}
+        try:
+            action = request.POST['action']
+            if action == 'edit':
+                with transaction.atomic():
+                    vents = json.loads(request.POST['compr'])
+                    compra = Compra.objects.get(pk=self.get_object().id)
+                    compra.fecha_compra = vents['fecha_compra']
+                    compra.fecha_vencimiento = vents['fecha_vencimiento']
+                    compra.prov_datos_id = vents['prov_datos']
+                    compra.pago = vents['pago']
+                    compra.subtotal = float(vents['subtotal'])
+                    compra.iva = float(vents['iva'])
+                    compra.total = float(vents['total'])
+                    compra.save()
+                    for i in vents['products']:
+                        det = DetCompra()
+                        det.compra_id = compra.id
+                        det.prod_id = i['id']
+                        det.cant = int(i['cant'])
+                        det.price = float(i['precio_costo'])
+                        det.subtotal = float(i['subtotal'])
+                        det.save()
+                        # det.prod.stock += det.cant
+                        # det.prod.save()
+                    data = {'id': compra.id}
+            elif action == 'search_products':
+                data = []
+                term = request.POST['term'].strip()
+                products = Producto.objects.all()  # filter(stock__gt=0)
+                if len(term):
+                    products = products.filter(nombre__icontains=term)
+                for i in products[0:10]:
+                    item = i.toJSON()
+                    item['value'] = i.nombre
+                    data.append(item)
+            else:
+                data['error'] = 'No ha ingresado a ninguna opción'
+        except Exception as e:
+            data['error'] = str(e)
+        return JsonResponse(data, safe=False)
+
+    def get_details_product(self):
+        data = []
+        try:
+            for i in DetCompra.objects.filter(compra_id=self.get_object().id):
+                item = i.prod.toJSON()
+                item['cant'] = i.cant
+                data.append(item)
+        except:
+            pass
+        return data
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Agregar Compra'
+        context['list_url'] = self.success_url
+        context['action'] = 'edit'
+        context['det'] = json.dumps(self.get_details_product(), default=str)
+        context['entity'] = 'Compra'
+        return context
+
+
 class CompraDeleteView(DeleteView):
     model = Compra
     template_name = 'delete_venta.html'
@@ -140,6 +216,132 @@ class CompraDeleteView(DeleteView):
         context['title'] = 'Eliminación de una Compra'
         context['entity'] = 'Compra'
         context['list_url'] = self.success_url
+        return context
+
+
+class NotaCompraListview(ListView):
+    model = NotaCreditoCompra
+    template_name = 'lista_Nota_credito_compra.html'
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        
+        data = {}
+        try:
+            action = request.POST['action']
+            if action == 'searchdata':
+                data = []
+                for i in NotaCreditoCompra.objects.all():
+                    i.id =str(i.detcompra_datos.id).zfill(6)
+                    print(i.id)
+                    data.append(i.toJSON())
+            else:
+                data['error'] = 'Ha ocurrido un error'
+        except Exception as e:
+            data['error'] = str(e)
+        return JsonResponse(data, safe=False)
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Listado de Nota Compras'
+        context['boton'] = 'Compra'
+        context['create_url'] = reverse_lazy('Agregar compra')
+        context['list_url'] = reverse_lazy('Listado de Nota Credito Compra')
+        context['entity'] = 'Compra'
+
+        return context
+
+
+class NotaCreditoProveedorCreateView(CreateView):
+    model = NotaCreditoCompra
+    form_class = NotaCompraForm
+    template_name = 'create_nota_compra.html'
+    success_url = reverse_lazy('Listado de Nota Credito Compra')
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        data = {}
+        try:
+            action = request.POST['action']
+            if action == 'add':
+                print('entra en add')
+                with transaction.atomic():
+                    vents = json.loads(request.POST['compr'])
+                    nota = NotaCreditoCompra()
+                    #compra.prov_datos_id = vents['prov_datos']
+                    #print(vents['prov_datos'])
+                    #compra.pago = vents['pago']
+                    #print(vents['pago'])
+
+                    #compra.subtotal = float(vents['subtotal'])
+                    
+                    #compra.iva = float(vents['iva'])
+                    #compra.total = float(vents['total'])
+                    print(DetCompra.objects.all())
+                   # compra.save()
+                    for i in vents['products']:
+                        nota = NotaCreditoCompra()
+                        det = DetCompra()
+                        form = self.get_form()
+                        #print(form.desc_nota)
+                        #data = form.save()
+                        #nota.detcompra_datos.compra_id = compra.id
+                        #print('det_id: ',det.detcompra_id)
+                        print('PEPETO: ',DetCompra.objects.filter(compra_id=i['id']))
+                        nota.detcompra_datos_id = i['id']
+                        nota.fecha_emision_nota = vents['fecha_emision_nota']
+                        print('fecha_emision_nota: ',vents['fecha_emision_nota'])
+                        nota.compra_id =i['id']
+                        print('nro_factura: ',i['id'])
+                        nota.total = i['total']
+                        print('total: ',i['total'])
+                        #print('subtotal: ',i['subtotal'])
+                        nota.cant = i['cant']                   
+                        print('cant: ',i['cant'])
+                        #print('compra.id: ',i.id)
+                        #det.prod_id = i['id']
+                        #det.cant = int(i['cant'])
+                        #det.price = float(i['precio_costo'])
+                        #print('desc_nota: ',i['desc_nota'])
+                        #det.subtotal = float(i['subtotal'])
+                        #print('subtotal: ',i['subtotal'])
+                        #nota.save()
+                    #data = {'id': compra.id}
+            elif action == 'search_products':
+                data = []
+                term = request.POST['term'].strip()
+                products = DetCompra.objects.all()  # filter(stock__gt=0)
+                if len(term):
+                    products = DetCompra.filter(id=term)
+                for i in products[0:10]:
+                    item = i.toJSON()
+                    item['value'] = i.id 
+                    item['id'] = str(i.compra_id).zfill(6)
+                    item['prov_datos']=i.compra.prov_datos.nombre
+                    item['total'] = i.compra.total
+                    #item['subtotal'] = i.compra.subtotal
+                    # item['text'] = i.name
+                    data.append(item)
+            else:
+                data['error'] = 'No ha ingresado a ninguna opción'
+        except Exception as e:
+            data['error'] = str(e)
+        return JsonResponse(data, safe=False)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Agregar Compra'
+        context['list_url'] = self.success_url
+        context['action'] = 'add'
+        context['entity'] = 'Compra'
         return context
 
 class SaleInvoicePdfView(View):
@@ -170,10 +372,15 @@ class SaleInvoicePdfView(View):
         return path
 
     def get(self, request, *args, **kwargs):
+        compra = Compra.objects.get(pk=self.kwargs['pk']).id
+        Detcompra = DetCompra.objects.all().filter(compra_id=compra)
+        for i in Detcompra:
+            i.prod.stock = i.prod.stock + i.cant
+            i.prod.save()
         try:
-            template = get_template('invoice.html')
+            template = get_template('invoice_compra.html')
             context = {
-                'sale': Sale.objects.get(pk=self.kwargs['pk']),
+                'compra': Compra.objects.get(pk=self.kwargs['pk']),
                 'comp': {'name': 'AguaMarina', 'ruc': '9999999999999',
                          'address': 'Avda Fernando de la Mora esq Taruma'},
                 'icon': '{}{}'.format(settings.MEDIA_URL, 'logo.png')
@@ -188,4 +395,4 @@ class SaleInvoicePdfView(View):
             return response
         except:
             pass
-        return HttpResponseRedirect(reverse_lazy('Listado de Venta'))
+        return HttpResponseRedirect(reverse_lazy('Listado de compras'))

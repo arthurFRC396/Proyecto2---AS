@@ -68,9 +68,19 @@
                                     <label>Proveedor:</label>
                                     {{ form.prov_datos }}
                                 </div>
-                                <div class="col-lg-3">
+
+                                <div class="col-lg-3" id = check>
                                     <label>Condicion de pago:</label>
-                                    {{ form.pago }}
+                                        {{form.pago}}
+                                </div>
+
+                                <div class="col-lg-3">
+                                    <label>Cantidad de cuotas:</label>
+                                        {{ form.cant_cuota }}
+                                </div>
+                                <div class="col-lg-3">
+                                    <label>Nro Factura</label>
+                                        {{ nro_factura}}
                                 </div>
                             </div>
                         </div>
@@ -82,8 +92,8 @@
                         </div>
                     </div>
                 </div>
-                {#            </div>#}
-                {#  CARD DE BUSQUEDA DE PRODUCTO#}
+                <!-- {#            </div>#}
+                {#  CARD DE BUSQUEDA DE PRODUCTO#} -->
                 <div class="row">
                     <div class="col-lg">
                         <div class="card card-secondary ">
@@ -209,9 +219,8 @@
         </div>
     </div>
 
-    <script>
-        compr.items.products = {{ det|safe }};
-        // Se removio el compr.list(); para calcular bien el iva en el editar. Revisar al final del archivo form.js se lo puso.
+    <script >
+             // Se removio el compr.list(); para calcular bien el iva en el editar. Revisar al final del archivo form.js se lo puso.
     </script>
 {% endblock %}
 {% block javascript %}
@@ -226,17 +235,15 @@
             format: 'YYYY-MM-DD',
             date: moment().format("YYYY-MM-DD"),
             locale: 'es',
-            minDate: moment().format("YYYY-MM-DD"),
-            {#maxDate: moment().format("YYYY-MM-DD")#}
+            minDate: moment().format("YYYY-MM-DD")
         });
         $('#fecha_vencimiento').datetimepicker({
             format: 'YYYY-MM-DD',
             date: moment().format("YYYY-MM-DD"),
             locale: 'es',
-            minDate: moment().format("YYYY-MM-DD"),
-            {#maxDate: moment().format("YYYY-MM-DD")#}
+            minDate: moment().format("YYYY-MM-DD")
         });
-        {#-------------------------------- Logica --------------------------------------------------#}
+        // -------------------------------- Logica --------------------------------------------------
 
         var tblSearchProducts;
         var compr = {
@@ -254,17 +261,17 @@
             //Calculo de la factura
             calculate_invoice: function () {
                 var subtotal = 0.00;
-                {#var iva = $('input[name="iva"]').val();#}
+                // {#var iva = $('input[name="iva"]').val();#}
                 $.each(this.items.products, function (pos, dict) {
                     dict.subtotal = dict.cant * parseFloat(dict.precio_costo);
                     subtotal += dict.subtotal;
                 });
                 this.items.subtotal = subtotal;
-                {#this.items.iva = this.items.subtotal * iva;#}
+                // {#this.items.iva = this.items.subtotal * iva;#}
                 this.items.total = this.items.subtotal + this.items.iva;
 
                 $('input[name="subtotal"]').val(this.items.subtotal.toFixed(2));
-                {#$('input[name="ivacalc"]').val(this.items.iva.toFixed(2));#}
+                // {#$('input[name="ivacalc"]').val(this.items.iva.toFixed(2));#}
                 $('input[name="total"]').val(this.items.total.toFixed(2));
             },
             //agregar item
@@ -450,32 +457,6 @@
                 compr.add(product);
             });
 
-        //busqueda proveedor
-        $('select[name="prov_datos"]').select2({
-            theme: "bootstrap4",
-            language: 'es',
-            allowClear: true,
-            ajax: {
-                delay: 250,
-                type: 'POST',
-                url: window.location.pathname,
-                data: function (params) {
-                    var queryParameters = {
-                        term: params.term,
-                        action: 'search_clients'
-                    }
-                    return queryParameters;
-                },
-                processResults: function (data) {
-                    return {
-                        results: data
-                    };
-                },
-            },
-            placeholder: 'Ingrese una descripción',
-            minimumInputLength: 1,
-        });
-
         $('.btnClearSearch').on('click', function () {
             $('input[name="search"]').val('').focus();
         });
@@ -542,10 +523,9 @@
             });
         });
 
-
         compr.list();
 
-        {#---------------- Funciones para acciones -----------------------#}
+        // {#---------------- Funciones para acciones -----------------------#}
 
         function alert_action(title, content, callback, cancel) {
             $.confirm({
@@ -625,6 +605,17 @@
             })
         }
 
+
+        $(document).ready(function () {
+        $('#frmSale').on('input change', function () {
+            if ($(this).val() != 'Credito') {
+                $('#cant_cuotas').prop('disabled', false);
+            }
+            else {
+                $('#cant_cuotas').prop('disabled', true);
+            }
+        });
+    });
 
     </script>
 {% endblock %}
