@@ -4,8 +4,7 @@ from homepage.views import IndexView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', IndexView.as_view(), name='index'),
-    path('login/', include('Login.urls')),
+    path('', include('Login.urls')),
     path('cliente/', include('Cliente.url')),
     path('producto/', include('Producto.url')),
     path('vendedor/', include('vendedor.urls')),
@@ -13,5 +12,4 @@ urlpatterns = [
     path('usuario/', include('user.urls')),
     path('Venta/', include('Venta.url')),
     path('Compra/', include('Compra.url')),
-
 ]

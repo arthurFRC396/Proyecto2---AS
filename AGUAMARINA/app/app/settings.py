@@ -88,7 +88,7 @@ WSGI_APPLICATION = 'app.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.sqlite3',
         'NAME': 'db',
         'USER': 'postgres',
         'PASSWORD': 'arturo',
@@ -133,7 +133,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-LOGIN_REDIRECT_URL = '/cliente/lista/'
+LOGIN_REDIRECT_URL = '/proveedor/dashboard/'
 
 LOGOUT_REDIRECT_URL = '/login/'
 

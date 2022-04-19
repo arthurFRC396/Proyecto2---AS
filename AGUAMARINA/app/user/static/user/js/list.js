@@ -40,6 +40,7 @@ $(function () {
                 render: function (data, type, row) {
                     var buttons = '<a href="/usuario/update/' + row.id + '/" class="btn btn-warning btn-xs btn-flat"><i class="fas fa-edit"></i></a> ';
                     buttons += '<a href="/usuario/delete/' + row.id + '/" type="button" class="btn btn-danger btn-xs btn-flat"><i class="fas fa-trash-alt"></i></a>';
+                    buttons += '<a style="margin-left: 0.2rem;" href="/admin/auth/group/" type="button" class="btn btn-success btn-flat"><i class="fa-solid fa-user-rays">roles</i></a>';
                     return buttons;
                 }
             },
