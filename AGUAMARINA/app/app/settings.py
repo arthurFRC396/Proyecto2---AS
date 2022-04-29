@@ -133,7 +133,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-LOGIN_REDIRECT_URL = '/cliente/lista/'
+LOGIN_REDIRECT_URL = '/proveedor/dashboard/'
 
 LOGOUT_REDIRECT_URL = '/login/'
 
