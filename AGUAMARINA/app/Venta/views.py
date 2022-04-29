@@ -17,6 +17,7 @@ from django.views.generic import TemplateView
 from Producto.models import Producto
 from Venta.forms import SaleForm
 from Venta.models import Sale, DetSale
+from user.models import User
 import os
 from django.conf import settings
 from django.http import HttpResponse
@@ -40,11 +41,11 @@ class SaleListView(ListView):
             if action == 'searchdata':
                 data = []
                 for i in Sale.objects.all():
-                    data.append(i.toJSON())
-
+                    data.append(i.toJSON())                  
             elif action == 'search_details_prod':
                 data = []
                 for i in DetSale.objects.filter(sale_id=request.POST['id']):
+                    
                     data.append(i.toJSON())
             else:
                 data['error'] = 'Ha ocurrido un error'
@@ -110,6 +111,7 @@ class SaleCreateView(CreateView):
                     sale.subtotal = float(vents['subtotal'])
                     sale.iva = float(vents['iva'])
                     sale.total = float(vents['total'])
+                    sale.usuario_id = request.user.id
                     sale.save()
                     for i in vents['products']:
                         det = DetSale()
@@ -286,7 +288,7 @@ class SaleDeleteView(DeleteView):
 class SaleInvoicePdfView(View):
     model = Sale
     form_class = SaleForm
-    print('salepdf')
+
 
     def link_callback(self, uri, rel):
         """
@@ -319,11 +321,15 @@ class SaleInvoicePdfView(View):
         print('get')
         Venta = Sale.objects.get(pk=self.kwargs['pk']).id
         DetVenta = DetSale.objects.all().filter(sale_id=Venta)
-        for i in DetVenta:
-            print(i.cant)
-            print(i.prod.stock)
-            i.prod.stock = i.prod.stock - i.cant
-            i.prod.save()
+        estado_fact = Sale.objects.get(pk=self.kwargs['pk']).es_procesado
+        if estado_fact == 'N':
+            for i in DetVenta:
+                print(i.cant)
+                print(i.prod.stock)
+                i.prod.stock = i.prod.stock - i.cant
+                i.sale.es_procesado = 'S'
+                i.prod.save()
+                i.sale.save()
 
         try:
 

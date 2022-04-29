@@ -17,12 +17,8 @@
 
 {% block columnas %}
     <tr>
-        <th scope="col">Nro Factura</th>
-        <th scope="col">Proveedor</th>
-        <th scope="col">Fecha Compra</th>
-        <th scope="col">Fecha Vencimiento</th>
+        <th scope="col">Nro Nota</th>
         <th scope="col">Fecha Emision</th>
-        <th scope="col">Razon</th>
         <th scope="col">Total</th>
         <th scope="col">Opciones</th>
     </tr>
@@ -49,6 +45,7 @@
                     <table class="table table-bordered" id="tblDet">
                         <thead>
                         <tr>
+                            <th>Factura</th>
                             <th>Producto</th>
                             <th>Tipo Producto</th>
                             <th>Costox Unidad</th>
@@ -95,12 +92,8 @@ $(function () {
 
         columns: [
             {"data": "id"},
-            {"data": "compra_datos.prov_datos.nombre"},
-            {"data": "compra_datos.fecha_compra"},
-            {"data": "compra_datos.fecha_vencimiento"},
             {"data": "fecha_emision_nota"},
-            {"data": "compra_datos.pago"},
-            {"data": "compra_datos.total"},
+            {"data": "total"},
             {"data": "id"},
         ],
         columnDefs: [
@@ -119,10 +112,10 @@ $(function () {
                 render: function (data, type, row) {
 
                     var buttons = '<a href="/Compra/eliminar/' + row.id + '/" class="btn btn-danger btn-xs btn-flat"><i class="fas fa-trash-alt"></i></a> ';
-                    buttons += '<a href="/Compra/editar/' + row.id + '/" class="btn btn-warning btn-xs btn-flat"><i class="fas fa-edit"></i></a> ';
+                    //buttons += '<a href="/Compra/editar/' + row.id + '/" class="btn btn-warning btn-xs btn-flat"><i class="fas fa-edit"></i></a> ';
                     buttons += '<a rel="details" class="btn btn-success btn-xs btn-flat"><i class="fas fa-search"></i></a> ';
-                    buttons += '<a href="/Compra/Nota" target="_blank" class="btn btn-default btn-xs btn-flat"><i class="fas fa-file-invoice"></i></a> ';
-                    buttons += '<a href="/Compra/pdf/'+row.id+'/" target="_blank" class="btn btn-info btn-xs btn-flat"><i class="fas fa-file-pdf"></i></a> ';
+                    //buttons += '<a href="/Compra/Nota" target="_blank" class="btn btn-default btn-xs btn-flat"><i class="fas fa-file-invoice"></i></a> ';
+                    //buttons += '<a href="/Compra/pdf/'+row.id+'/" target="_blank" class="btn btn-info btn-xs btn-flat"><i class="fas fa-file-pdf"></i></a> ';
                     return buttons;
                 }
             },
@@ -154,11 +147,13 @@ $(function () {
                     dataSrc: ""
                 },
                 columns: [
+                
+                    {"data": "detcompra_datos_id"},
                     {"data": "prod.nombre"},
                     {"data": "prod.tipo_producto.nombre"},
                     {"data": "price"},
-                    {"data": "cant"},
-                    {"data": "subtotal"},
+                    {"data": "cantnota"},
+                    {"data": "totalnota"},
                 ],
                 columnDefs: [
                     {
