@@ -8,9 +8,6 @@
         <th scope="col">Cantidad</th>
         <th scope="col">Razon</th>
         <th scope="col">Total</th>
-        <th scope="col">Direccion</th>
-        <th scope="col">Telefono</th>
-        <th scope="col">Ingresado</th>
         <th scope="col">Opciones</th>
     </tr>
 {% endblock %}
@@ -23,17 +20,14 @@
             <td>{{ Nota.detcompra_datos.id }}</td>  <!-- nro_factura -->
             <td>{{ Nota.cant }}</td>
             <td>{{ Nota.desc_nota }}</td>
-            <td>{{ Nota.total }}</td>
-            
-            <!-- <td>{{ Nota.telefono }}</td> -->
-            <!-- <td>{{ Nota.ingresado }}</td> --> -->
-            <!-- <td>
+            <td>{{ Nota.total }}</td>      
+            <td>
                 <a href="#" class="btn btn-warning btn-xs">
                     <i class="fas fa-edit"></i></a>
-                <a href="#" class="btn btn-danger btn-xs">
+                <a href="{% url 'Eliminar Nota Compra' Nota.id %}" class="btn btn-danger btn-xs">
                     <i class="fas fa-trash-alt"></i>
                 </a>
-            </td> -->
+            </td> 
         </tr>
     {% endfor %}
 {% endblock %}

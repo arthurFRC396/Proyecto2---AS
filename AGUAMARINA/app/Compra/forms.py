@@ -132,6 +132,7 @@ class NotaCompraForm(ModelForm):
                     'class' : 'form-control',
                     'placeholder' : 'Ingrese el motivo de la nota',
                     'autocomplete' : 'off',
+                    'id': 'desc_nota',
                     'rows' : 3,
                     'cols' : 3
                 }

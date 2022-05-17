@@ -8,7 +8,7 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, V
 
 # Create your views here.
 from Compra.forms import CompraForm,NotaCompraForm
-from Compra.models import Compra, DetCompra,NotaCreditoCompra
+from Compra.models import Compra, DetCompra,NotaCreditoCompra,DetNotaCreditoCompra
 from Producto.models import Producto
 import json
 import os
@@ -221,7 +221,7 @@ class CompraDeleteView(DeleteView):
 
 class NotaCompraListview(ListView):
     model = NotaCreditoCompra
-    template_name = 'lista_Nota_credito_compra.html'
+    template_name = 'lista_Nota_credito_compra_original.html'
 
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
@@ -234,11 +234,23 @@ class NotaCompraListview(ListView):
         try:
             action = request.POST['action']
             if action == 'searchdata':
+                print('entra a searchdata')
                 data = []
                 for i in NotaCreditoCompra.objects.all():
-                    i.id =str(i.detcompra_datos.id).zfill(6)
-                    print(i.id)
+                    #i.id =str(i.detcompra_datos.id).zfill(6)
+                   # print(i.id)
+                    #print(i.total)
                     data.append(i.toJSON())
+                    #for j in DetNotaCreditoCompra.objects.all():
+                #.filter(notacredito_id=request.POST['id']):
+                        #print(j.notacredito_id)
+                        #data.append(j.toJSON()) 
+            elif action == 'search_details_prod':
+                print('entra a search_details_prod')
+                data = []
+                for i in DetNotaCreditoCompra.objects.filter(notacredito_id=request.POST['id']):
+                    print(i.totalnota)
+                    data.append(i.toJSON())    
             else:
                 data['error'] = 'Ha ocurrido un error'
         except Exception as e:
@@ -249,10 +261,10 @@ class NotaCompraListview(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Listado de Nota Compras'
-        context['boton'] = 'Compra'
-        context['create_url'] = reverse_lazy('Agregar compra')
+        context['boton'] = 'Nota Credito Compra'
+        context['create_url'] = reverse_lazy('Agregar Nota Credito Compra')
         context['list_url'] = reverse_lazy('Listado de Nota Credito Compra')
-        context['entity'] = 'Compra'
+        context['entity'] = 'Nota Credito Compra'
 
         return context
 
@@ -275,46 +287,22 @@ class NotaCreditoProveedorCreateView(CreateView):
                 print('entra en add')
                 with transaction.atomic():
                     vents = json.loads(request.POST['compr'])
+                    #nota = NotaCreditoCompra.objects.all()
                     nota = NotaCreditoCompra()
-                    #compra.prov_datos_id = vents['prov_datos']
-                    #print(vents['prov_datos'])
-                    #compra.pago = vents['pago']
-                    #print(vents['pago'])
-
-                    #compra.subtotal = float(vents['subtotal'])
-                    
-                    #compra.iva = float(vents['iva'])
-                    #compra.total = float(vents['total'])
-                    print(DetCompra.objects.all())
-                   # compra.save()
+                    nota.fecha_emision_nota = vents['fecha_emision_nota']
+                    nota.total= vents['total']
+                    nota.save()
                     for i in vents['products']:
-                        nota = NotaCreditoCompra()
-                        det = DetCompra()
-                        form = self.get_form()
-                        #print(form.desc_nota)
-                        #data = form.save()
-                        #nota.detcompra_datos.compra_id = compra.id
-                        #print('det_id: ',det.detcompra_id)
-                        print('PEPETO: ',DetCompra.objects.filter(compra_id=i['id']))
-                        nota.detcompra_datos_id = i['id']
-                        nota.fecha_emision_nota = vents['fecha_emision_nota']
-                        print('fecha_emision_nota: ',vents['fecha_emision_nota'])
-                        nota.compra_id =i['id']
-                        print('nro_factura: ',i['id'])
-                        nota.total = i['total']
-                        print('total: ',i['total'])
-                        #print('subtotal: ',i['subtotal'])
-                        nota.cant = i['cant']                   
-                        print('cant: ',i['cant'])
-                        #print('compra.id: ',i.id)
-                        #det.prod_id = i['id']
-                        #det.cant = int(i['cant'])
-                        #det.price = float(i['precio_costo'])
-                        #print('desc_nota: ',i['desc_nota'])
-                        #det.subtotal = float(i['subtotal'])
-                        #print('subtotal: ',i['subtotal'])
-                        #nota.save()
-                    #data = {'id': compra.id}
+                        #nota = NotaCreditoCompra()
+                        detnota = DetNotaCreditoCompra()
+                        detnota.notacredito_id = nota.id
+                        detnota.detcompra_datos_id = i['id']
+                        detnota.compra_id =i['id']
+                        detnota.totalnota = i['subtotal']
+                        detnota.cantnota = i['cant']                   
+                        detnota.desc = i['desc']
+                        detnota.save()
+                    #data = {'id': nota.id}
             elif action == 'search_products':
                 data = []
                 term = request.POST['term'].strip()
@@ -343,6 +331,24 @@ class NotaCreditoProveedorCreateView(CreateView):
         context['action'] = 'add'
         context['entity'] = 'Compra'
         return context
+
+class NotaCreditoProveedorDeleteView(DeleteView):
+    model = NotaCreditoCompra
+    template_name = 'delete_nota_compra.html'
+    success_url = reverse_lazy("Listado de Nota Credito Compra")
+
+    # @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Eliminación de una Nota Credito Compra'
+        context['list_url'] = reverse_lazy("Listado de Nota Credito Compra")
+        context['entity'] = 'Nota Credito Compra'
+        return context
+
 
 class SaleInvoicePdfView(View):
     def link_callback(self, uri, rel):
@@ -374,9 +380,14 @@ class SaleInvoicePdfView(View):
     def get(self, request, *args, **kwargs):
         compra = Compra.objects.get(pk=self.kwargs['pk']).id
         Detcompra = DetCompra.objects.all().filter(compra_id=compra)
-        for i in Detcompra:
-            i.prod.stock = i.prod.stock + i.cant
-            i.prod.save()
+        estado_fact = Compra.objects.get(pk=self.kwargs['pk']).es_procesado
+        print(estado_fact)
+        if estado_fact == 'N':
+            for i in Detcompra:
+               i.prod.stock = i.prod.stock + i.cant
+               i.compra.es_procesado = 'S'
+               i.prod.save()
+               i.compra.save()
         try:
             template = get_template('invoice_compra.html')
             context = {

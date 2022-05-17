@@ -8,14 +8,17 @@ from django.forms import model_to_dict
 from Cliente.models import Cliente
 from Producto.models import Producto
 from Venta.choices import pago_choices
+from user.models import User
 
 
 class Sale(models.Model):
     cli = models.ForeignKey(Cliente, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(User,on_delete=models.CASCADE, default=1)
     date_joined = models.DateField(default=datetime.now)
     subtotal = models.DecimalField(default=0.00, max_digits=9, decimal_places=2)
     iva = models.DecimalField(default=0.00, max_digits=9, decimal_places=2)
     total = models.FloatField(default=0.00)
+    es_procesado = models.CharField(default='N', max_length=1, verbose_name='procesado')
         # models.DecimalField(default=0.00, max_digits=9, decimal_places=2)
     pago = models.CharField(max_length=40, choices=pago_choices, default='efectivo')
 
@@ -25,6 +28,7 @@ class Sale(models.Model):
     def toJSON(self):
         item = model_to_dict(self)
         item['cli'] = self.cli.toJSON()
+        item['usuario'] = self.usuario.toJSON()
         item['subtotal'] = format(self.subtotal, '.2f')
         item['iva'] = format(self.iva, '.2f')
         item['total'] = format(self.total, '.2f')
