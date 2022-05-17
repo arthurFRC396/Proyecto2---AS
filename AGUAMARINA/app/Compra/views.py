@@ -15,7 +15,7 @@ import os
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template.loader import get_template
-from xhtml2pdf import pisa
+#from xhtml2pdf import pisa
 
 
 class CompraListview(ListView):
