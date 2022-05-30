@@ -6,6 +6,7 @@ from crum import get_current_request
 
 
 class User(AbstractUser):
+    status=models.CharField(max_length=8 ,default=1)
     def toJSON(self):
         item = model_to_dict(self, exclude=['password', 'user_permissions', 'last_login'])
         if self.last_login:
@@ -15,12 +16,12 @@ class User(AbstractUser):
         item['groups'] = [{'id': g.id, 'name': g.name} for g in self.groups.all()]
         return item
 
-def get_group_session(self):
-    try:
-        request = get_current_request()
-        groups = self.groups.all()
-        if groups.exists():
-            if 'group' not in request.session:
-                request.session['group'] = groups[0]
-    except:
-        pass
+    def get_group_session(self):
+        try:
+            request = get_current_request()
+            groups = self.groups.all()
+            if groups.exists():
+                if 'group' not in request.session:
+                    request.session['group'] = groups[0]
+        except:
+            pass
