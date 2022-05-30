@@ -21,10 +21,17 @@
             <td>{{ caja.monto_inicial }}</td>
             <td>{{ caja.monto_final }}</td>
             <td>{{ caja.total_venta }}</td>
-            <td>{{ caja.status }}</td>
+            {% if caja.status == '1'  %}
+            <td>abierto</td>
+            {% endif  %}
+            {% if caja.status == '2'  %}
+            <td>cerrado</td>
+            {% endif  %}
             <td>
+                {% if caja.status == '1'  %}
                 <a href="{% url 'Caja:editar_cajas' caja.id %}" class="btn btn-warning btn-xs">
                     <i class="fas fa-edit"></i></a>
+                {% endif  %}
                 <a href="{% url 'Caja:eliminar_cajas' caja.id %}" class="btn btn-danger btn-xs">
                     <i class="fas fa-trash-alt"></i>
                 </a>

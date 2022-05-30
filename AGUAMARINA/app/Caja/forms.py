@@ -48,7 +48,7 @@ class CajaForm(ModelForm):
                 }),
             'status': Select()
         }
-        exclude = ['usuario','monto_final','fecha_cierre', 'total_venta']
+        exclude = ['usuario','monto_final','fecha_cierre', 'total_venta', 'status']
 
     def save(self, commit=True):
         data = {}
