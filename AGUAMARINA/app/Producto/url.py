@@ -17,6 +17,14 @@ urlpatterns = [
     path('crear_oferta/', OfertaCreateView.as_view(), name='Agregar Oferta'),
     path('editar_oferta/<int:pk>/', OfertaUpdateView.as_view(), name='Editar Oferta'),
     path('eliminar_oferta/<int:pk>/', OfertaDeleteView.as_view(), name='Eliminar Oferta'),
-
+    # url Inventario
+    path('lista Inventario/', InventarioListview.as_view(), name='Listado De Ajustes de Inventario'),
+    path('Inventario/', InventarioCreateView.as_view(), name='Ajustar Inventario'),
+    path('editar_inventario/<int:pk>/', InventarioUpdateView.as_view(), name='Editar Ajuste'),
+    path('ajuste/<int:pk>/', InventarioAjusteView.as_view(), name='Procesar Ajuste'),
+    path('eliminar inventario/<int:pk>/', InventarioDeleteView.as_view(), name='Eliminar Item Inventario'),
+    #path('adjunto/', home, name='Adjuntar Archivo'),
+    path('Archivo/', home, name='Adjuntar Archivo'),
 
 ]
+# + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

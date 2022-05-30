@@ -297,3 +297,25 @@ class OfertaUpdateForm(ModelForm):
         except Exception as e:
             data['error'] = str(e)
         return data
+
+
+class InventarioForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # self.fields['nombre'].widget.attrs['autofocus'] = True
+
+    class Meta:
+        model = Inventario
+        fields = '__all__'
+        widgets = {
+            'fecha_registro': forms.DateInput(
+                format='YYYY-MM-DD',
+                attrs={
+                    'value': datetime.now().strftime('YYYY-MM-DD'),
+                    'autocomplete': 'on',
+                    #'class': 'form-control datetimepicker-input',
+                    'id': 'fecha_registro',
+                    'data-target': '#fecha_registro',
+                    #'data-toggle': 'datetimepicker'
+                }),
+        }

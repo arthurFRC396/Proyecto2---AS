@@ -14,7 +14,7 @@
                 <img src="{% static 'img/usuario.png' %}" class="img-circle elevation-2" alt="User Image">
             </div>
             <div class="info">
-                <a href="#" class="d-block"><p style="color:#FFFFFF" ;><b>Alexander Pierce</b></p></a>
+                <a href="#" class="d-block"><p style="color:#FFFFFF" ;><b>{{request.user.first_name}} {{request.user.last_name}}</b></p></a>
             </div>
         </div>
         <nav class="mt-2">
@@ -44,18 +44,34 @@
                                     </p>
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a href="{% url 'Listado de Empresas' %}" class="nav-link">
+                                    <i class="nav-icon fas fa-store"></i>
+                                    <p>
+                                        Empresa
+                                    </p>
+                                </a>
+                            </li>
+                            <!-- <li class="nav-item">
+                                <a href="{% url 'Grafico Venta' %}" class="nav-link">
+                                    <i class="nav-icon fas fa-chart-pie"></i>
+                                    <p>
+                                        Grafico Venta
+                                    </p>
+                                </a>
+                            </li> -->
                             <li class="nav-item has-treeview">
                                 <a href="{% url 'Listado de proveedores' %}" class="nav-link active">
-                                    <i class="nav-icon fas fa-dolly-flatbed"></i>
+                                    <i class="nav-icon fas fa-money-bill-wave"></i>
                                     <p>
-                                        Proveedores
+                                        Compra
                                         <i class="fas fa-angle-left right"></i>
                                     </p>
                                 </a>
                                 <ul class="nav nav-treeview" style="display: none;">
                                     <li class="nav-item">
                                         <a href="{% url 'Listado de proveedores' %}" class="nav-link active">
-                                            <i class="nav-icon fas fa-dolly-flatbed"></i>
+                                            <i class="nav-icon fas fa-truck-moving"></i>
                                             <p>
                                                 Proveedores
                                             </p>
@@ -64,7 +80,7 @@
     
                                     <li class="nav-item">
                                         <a href="{% url 'Agregar compra' %}" class="nav-link active">
-                                            <i class="nav-icon fas fa-truck-moving"></i>
+                                            <i class="nav-icon fas fa-dolly-flatbed"></i>
                                             <p>
                                                 Compra
                                             </p>
@@ -79,6 +95,15 @@
                                             </p>
                                         </a>
                                     </li>
+                                    <li class="nav-item">
+                                        <a href="{% url 'Listado de Nota Credito Compra' %}" class="nav-link active">
+                                            <i class="nav-icon fas fa-receipt"></i>
+                                            <p>
+                                                Nota Credito
+                                            </p>
+                                        </a>
+                                    </li>
+
                                 </ul>
                             </li>
                             <li class="nav-item has-treeview">
@@ -99,6 +124,7 @@
                                             </p>
                                         </a>
                                     </li>
+                                    
                                     <li class="nav-item">
                                         <a href="{% url 'Listado Tipos De Producto' %}" class="nav-link active">
                                             <i class="nav-icon fas fa-truck-loading"></i>
@@ -116,15 +142,25 @@
                                             </p>
                                         </a>
                                     </li>
+
+                                    <li class="nav-item">
+                                        <a href="{% url 'Listado De Ajustes de Inventario' %}" class="nav-link active">
+                                            <i class="nav-icon fas fa-clipboard-check"></i>
+                                            <p>
+                                                Ajuste De Inventario
+                                            </p>
+                                        </a>
+                                    </li>
+
                                 </ul>
                             </li>
     
                             <li class="nav-item has-treeview">
                             <li class="nav-item">
                                 <a href="{% url 'Agregar Venta' %}" class="nav-link active">
-                                    <i class="nav-icon fas fa-cash-register"></i>
+                                    <i class="nav-icon fas fa-coins"></i>
                                     <p>
-                                        Ventas
+                                        Venta
                                         <i class="fas fa-angle-left right"></i>
                                     </p>
                                 </a>
@@ -137,20 +173,28 @@
                                             </p>
                                         </a>
                                     </li>
-                                    <li class="nav-item">
+                                    <!-- <li class="nav-item">
                                         <a href="{% url 'admini:AdminListView' %}" class="nav-link active">
                                             <i class="nav-icon fas fa-users"></i>
                                             <p>
                                                 Vendedores
                                             </p>
                                         </a>
-                                    </li>
+                                    </li> -->
     
                                     <li class="nav-item">
                                         <a href="{% url 'Listado de Venta' %}" class="nav-link active">
                                             <i class="nav-icon fas fa-file-invoice"></i>
                                             <p>
                                                 Facturas
+                                            </p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{% url 'Listado de Nota Credito Venta' %}" class="nav-link active">
+                                            <i class="nav-icon fas fa-receipt"></i>
+                                            <p>
+                                                Nota Credito
                                             </p>
                                         </a>
                                     </li>

@@ -42,11 +42,9 @@
                 </h3>
             </div>
             <div class="card-body">
-                {#  CARD DE DATOS DE PROVEEDOR#}
-                {#                <div class="col-lg-4">#}
                 <div class="card card-secondary">
                     <div class="card-header">
-                        <h3 class="card-title"><i class="fas fa-shopping-cart"></i> Datos de la compra</h3>
+                        <h3 class="card-title"><i class="fas fa-shopping-cart"></i> Datos de la Nota</h3>
                     </div>
                     <div class="card-body">
                         <input type="hidden" name="action" value="{{ action }}">
@@ -81,27 +79,27 @@
                     <div class="col-lg">
                         <div class="card card-secondary ">
                             <div class="card-header">
-                                <h3 class="card-title"><i class="fas fa-boxes"></i> Detalle de productos</h3>
+                                <h3 class="card-title"><i class="fas fa-boxes"></i> Detalle de la Nota</h3>
                             </div>
                             <div class="card-body ">
                                 <div class="form-group col-lg-6" >
-                                    <label>Buscador de productos:</label>
+                                    <label>Buscador de Facturas:</label>
                                     <div class="input-group" >
-                                        <input type="text" class="form-control" autocomplete="off"
+                                        <input type="hidden" class="form-control" autocomplete="off"
                                                placeholder="Ingrese una descripción" maxlength="50" name="search">
                                         <div class="input-group-append">
-                                            <button class="btn btn-primary dropdown-toggle" type="button"
-                                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                Opciones
+                                            <button class="btn btn-primary btnSearchProducts" type="button"
+                                                     aria-haspopup="true" aria-expanded="false">
+                                                     Buscar Facturas
                                             </button>
-                                            <div class="dropdown-menu">
+                                            <!-- <div class="dropdown-menu">
                                                 <a class="dropdown-item btnSearchProducts">
                                                     <i class="fas fa-search"></i> Buscar productos
                                                 </a>
                                                 <a class="dropdown-item btnClearSearch">
                                                     <i class="fas fa-times"></i> Limpiar búsqueda
                                                 </a>
-                                            </div>
+                                            </div> -->
                                         </div>
                                     </div>
                                 </div>
@@ -343,8 +341,12 @@
                             orderable: false,
                             render: function (data, type, row) {
                                 //return '<a rel="remove" class="btn btn-danger btn-xs btn-flat" style="color: white;" ><i class="fas fa-trash-alt"></i></a>';
-                                return '<td><input type="text" name="descripcion" value="'+row.desc+'"></td>';
+                                if( row.desc = 'null') {
+                                    row.desc = ''
+                                    return '<td><input type="text" name="descripcion" autocomplete="off" placeholder="Ingrese una descripción" value="'+row.desc+'"></td>';
+                                }
                             }
+
                         },
                         {
                             targets: [-2],
@@ -371,9 +373,6 @@
                             step: 1
                         });
 
-                        // $(row).find('input[name="descripcion"]')({
-                        //     value: "coca"
-                        // });
 
                     },
                     initComplete: function (settings, json) {
@@ -571,7 +570,6 @@
 
             compr.items.fecha_emision_nota = $('input[name="fecha_emision_nota"]').val();
             compr.items.date_joined = $('input[name="date_joined"]').val();
-            //compr.items.desc_nota = desc_nota();
            compr.items.desc_nota = $('input[name="descripcion"]').val();
             compr.items.cli = $('select[name="cli"]').val();
             compr.items.prov_datos = $('select[name="prov_datos"]').val();

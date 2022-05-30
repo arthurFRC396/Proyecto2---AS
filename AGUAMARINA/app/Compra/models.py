@@ -14,7 +14,7 @@ class Compra(models.Model):
     subtotal = models.DecimalField(default=0.00, max_digits=9, decimal_places=2)
     precio_unitario = models.DecimalField(default=0.00, max_digits=9, decimal_places=2)
     total = models.DecimalField(default=0.00, max_digits=9, decimal_places=2)
-    pago = models.CharField(max_length=40, choices=compra_choices, default='efectivo')
+    pago = models.CharField(max_length=40, choices=compra_choices, default='Contado')
     fecha_compra = models.DateField(default=datetime.now)
     fecha_vencimiento = models.DateField(default=datetime.now)
     cant_cuota = models.IntegerField(default=0, choices=compra_cuota_choices)
@@ -96,7 +96,6 @@ class DetNotaCreditoCompra(models.Model):
     cantnota = models.IntegerField(default=0)
     totalnota = models.DecimalField(default=0.00, max_digits=9, decimal_places=2)
     desc = models.CharField(max_length=150, null=True, blank=True, verbose_name='desc')
-    #nro_factura = models.IntegerField(default=0)
 
     def __str__(self):
         return  self.id
@@ -104,7 +103,6 @@ class DetNotaCreditoCompra(models.Model):
 
     def toJSON(self):
         item = model_to_dict(self)
-
         item['prod'] = self.detcompra_datos.prod.toJSON()
         item['price'] = format(self.detcompra_datos.price, '.2f')
         item['totalnota'] = format(self.totalnota, '.2f')

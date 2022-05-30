@@ -89,3 +89,56 @@ class Oferta_temp(models.Model):
                                                verbose_name='Porcentaje de descuento', null=True)
     chk_delete = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     ingresado = models.DateTimeField(verbose_name='Fecha de registro', null=True)
+
+class FilesUploads(models.Model):
+        file = models.FileField()
+
+class Inventario(models.Model):
+    #prov_datos = models.ForeignKey(Proveedor.models.Proveedor, on_delete=models.CASCADE, default = 0)
+    stock_actual = models.IntegerField(validators=[MinValueValidator(0)], verbose_name='stock actual', default=0)
+    es_procesado = models.CharField(default='N', max_length=1, verbose_name='procesado')
+    fecha_registro = models.DateField(default=datetime.now)
+    autorizado_por = models.CharField(max_length=20, null=True, blank=True, verbose_name='autorizado_por')
+    cant = models.IntegerField(default=0)
+    #image = models.ImageField(upload_to='product/%Y/%m/%d', null=True, blank=True, verbose_name='Imagen')
+
+    def __str__(self):
+        return self.id
+
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        #item['prov_datos'] = self.prov_datos.toJSON()
+        item['det'] = [i.toJSON() for i in self.detinventario_set.all()]
+        #item['image'] = self.get_image()
+        return item
+
+    def get_image(self):
+        if self.image:
+            return '{}{}'.format(MEDIA_URL, self.image)
+        return '{}{}'.format(STATIC_URL, 'img/empty.png')
+
+    class Meta:
+        verbose_name = 'Inventario'
+        verbose_name_plural = 'Inventarios'
+        ordering = ['id']
+
+
+class DetInventario(models.Model):
+    inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE)
+    prod = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    motivo = models.CharField(max_length=150, null=True, blank=True, verbose_name='motivo')
+    cantprod = models.IntegerField(default=0)
+
+    def __str__(self):
+        return  str(self.prod_id).zfill(6)
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['prod'] = self.prod.toJSON()
+        return item
+
+    class Meta:
+        verbose_name = 'Detalle de Inventario'
+        verbose_name_plural = 'Detalles de Inventario'
+        ordering = ['id']

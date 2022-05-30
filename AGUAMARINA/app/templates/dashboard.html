@@ -1,7 +1,288 @@
 {% extends 'layout.html' %}
 
+
+
+
+{% block contenido %}
+<div class="card-body">
+    <!-- <canvas id="myChart" width="100" height="100"></canvas> -->
+</div>
+
+
+<div class="card card-primary">
+    <div class="card-header">
+        <h3 class="card-title">
+            {% if action == 'add' %}
+                <i class="fas fa-plus"></i>
+            {% else %}
+                <i class="fas fa-edit"></i>
+            {% endif %}
+            {{ title }}
+        </h3>
+    </div>
+    <div class="card-body">
+        {#  CARD DE DATOS DE PROVEEDOR#}
+        {#                <div class="col-lg-4">#}
+        <div class="card card-secondary">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-shopping-cart"></i> Ventas</h3>
+            </div>
+            <div class="card-body">
+                <input type="hidden" name="action" value="{{ action }}">
+                <div class="form-group">
+                    <div class="col-lg-3">
+                            <div>
+                                <input type='checkbox' name='delete_convos[]' value='{$pms[pm_loop].pmconvo_id}' id="chk"> <label>Ventas semanales</label>
+                            </div>                                       
+                    </div>
+                    <canvas id="myChart" width="300" height="50" align="center"></canvas>
+                </div>
+            </div>
+        </div>
+<!-- grafico semanal -->
+        <div class="col-lg">
+            <div class="card card-secondary "  id="mail_delete_button" style="display: none;">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-boxes"></i> Detalle de productos</h3>
+                </div>
+                <div class="card-body ">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="col-lg-8">
+
+                                <label>Venta en la semana</label>
+                                <div> <canvas id="semana" width="100" height="50" align="center"></canvas></div>
+                            </div>
+                            <hr>
+                            <div class="col-lg-4">
+                                <br><br><br><br><br><br><br>
+                                    <label>Productos mas vendidos</label>
+                                    <br>
+                                    <div><canvas id="productos" width="100" height="50" align="center"></canvas></div> 
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+<!-- Reporte -->
+
+        <div class="row">
+            <div class="col-lg">
+                <div class="card card-secondary ">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-boxes"></i> Detalle de productos</h3>
+                    </div>
+                    <div class="card-body ">
+                        <div class="form-group col-lg-6" >
+                            <div class="input-group" >
+
+                            </div>
+                        </div>
+
+                        <table class="table table-bordered" id="tblProducts">
+                            <thead>
+                            <tr>
+                                <th width="20%">Mes</th>
+                                <th width="20%">Fecha Venta</th>
+                                <th width="20%">Vendedor</th>
+                                <th width="20%">Cantidad</th>
+                                <th width="20%">Total</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <button type="submit" class="btn btn-primary btn-flat">
+            <i class="fas fa-save"></i> Guardar registro
+        </button>
+        <a href="#" class="btn btn-danger btn-flat">
+            <i class="fas fa-times"></i> Cancelar
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+
 {% block javascript %}
-<script>
+<script type="application/javascript">
+            var totalventa;
+            $(function(){
+                $.ajax(
+                        {
+                        type: "POST",
+                        url: window.location.pathname,
+                        data: {
+                            'action': "totalventa"
+                        },
+                        success: function(response)
+                        {
+                           // alert(response);
+                            console.log(response);
+                        },
+                        error: function(data)
+                        {
+                            //alert(data.responseText);
+                            console.log(response);
+                        },
+                    });
+            });
+
+        document.getElementById("chk").onclick = function() {
+            if(this.checked)
+                document.getElementById('mail_delete_button').style.display = "block";
+
+            else
+                document.getElementById('mail_delete_button').style.display = "none";
+                
+        }
+
+
+        var ctx= document.getElementById("myChart").getContext("2d");
+        steps = 10;
+        //const labels = Utils.months({count: 7});
+        var myChart= new Chart(ctx,{
+            type:"bar",
+            data:{
+                labels:['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+                datasets:[{
+                        label:'Venta del año',
+                        data:[65, 59, 80, 81, 56, 55, 40, 37, 70, 25, 44, 83],
+                        backgroundColor:[
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(255, 159, 64, 0.2)',
+                        'rgba(255, 205, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(201, 203, 207, 0.2)',
+                        'rgba(255, 205, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(201, 203, 207, 0.2)'
+                        ],
+                  borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                  ],
+                  borderWidth: 2
+                }]
+            },
+            options:{
+                scales:{
+                    yAxes:[{
+                            ticks:{
+                                beginAtZero:true
+                            }
+                    }]
+                }
+            }
+        });
+
+//// grafico semanal
+var sem= document.getElementById("semana").getContext("2d");
+        steps = 10;
+        //const labels = Utils.months({count: 7});
+        var myChart= new Chart(sem,{
+            type:"bar",
+            data:{
+                labels:['Lunes','Martes','Miercoles','Jueves','Viernes','Sabado','Domingo'],
+                datasets:[{
+                        label:'Ventas de la semana',
+                        data:[65, 59, 80, 81, 56, 55, 40],
+                        backgroundColor:[
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(255, 159, 64, 0.2)',
+                        'rgba(255, 205, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(201, 203, 207, 0.2)'
+                        ],
+                  borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                  ],
+                  borderWidth: 2
+                }]
+            },
+            options:{
+                scales:{
+                    yAxes:[{
+                            ticks:{
+                                beginAtZero:true
+                            }
+                    }]
+                }
+            }
+        });
+
+//// grafico productos mas vendidos
+var product= document.getElementById("productos").getContext("2d");
+        steps = 10;
+        //const labels = Utils.months({count: 7});
+        var myChart= new Chart(product,{
+            type:"pie",
+            data:{
+                labels:['Aceite','Insienso','Piedras','Escencias','Porta incienso'],
+                datasets:[{
+                        label:'Productos mas vendidos',
+                        data:[65, 59, 80, 81, 56 ],
+                        backgroundColor:[
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(255, 159, 64, 0.2)',
+                        'rgba(255, 205, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(54, 162, 235, 0.2)'
+                        ],
+                  borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)'
+                  ],
+                  borderWidth: 2
+                }]
+            },
+            options:{
+                scales:{
+                    yAxes:[{
+                            ticks:{
+                                beginAtZero:true
+                            }
+                    }]
+                }
+            }
+        });
+
+
     $('form').on('submit', function(e) {
         e.preventDefault();
         var parameters = $(this).serializeArray();

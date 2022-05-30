@@ -15,15 +15,18 @@ from django.views.generic import TemplateView
 
 # Create your views here.
 from Producto.models import Producto
-from Venta.forms import SaleForm
-from Venta.models import Sale, DetSale
+from Venta.forms import SaleForm, NotaVentaForm
+from Venta.models import Sale, DetSale, NotaCreditoVenta,DetNotaCreditoVenta
 from user.models import User
+from Empresa.models import Empresa
 import os
 from django.conf import settings
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
 from xhtml2pdf import pisa
+from datetime import datetime,timedelta,date
+
 
 
 class SaleListView(ListView):
@@ -41,7 +44,7 @@ class SaleListView(ListView):
             if action == 'searchdata':
                 data = []
                 for i in Sale.objects.all():
-                    data.append(i.toJSON())                  
+                    data.append(i.toJSON())                     
             elif action == 'search_details_prod':
                 data = []
                 for i in DetSale.objects.filter(sale_id=request.POST['id']):
@@ -120,7 +123,6 @@ class SaleCreateView(CreateView):
                         det.cant = int(i['cant'])
                         det.price = float(i['precio_venta'])
                         det.subtotal = float(i['subtotal'])
-                        print(det.prod.stock)
                         det.save()
                         # det.prod.stock -= det.cant
                         # det.prod.save()
@@ -212,7 +214,6 @@ class SaleUpdateView(UpdateView):
                         det.cant = int(i['cant'])
                         det.price = float(i['precio_venta'])
                         det.subtotal = float(i['subtotal'])
-                        print(det.prod.stock)
                         det.save()
                         # det.prod.stock -= det.cant
                         # det.prod.save()
@@ -258,6 +259,7 @@ class SaleUpdateView(UpdateView):
         return context
 
 
+
 class SaleDeleteView(DeleteView):
     model = Sale
     template_name = 'delete_venta.html'
@@ -285,6 +287,110 @@ class SaleDeleteView(DeleteView):
         return context
 
 
+class NotaVentaListview(ListView):
+    model = NotaCreditoVenta
+    template_name = 'lista_Nota_credito_venta_original.html'
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        
+        data = {}
+        try:
+            action = request.POST['action']
+            if action == 'searchdata':
+                data = []
+                for i in NotaCreditoVenta.objects.all():
+                    data.append(i.toJSON())
+            elif action == 'search_details_prod':
+                data = []
+                for i in DetNotaCreditoVenta.objects.filter(notacredito_id=request.POST['id']):
+                    data.append(i.toJSON())    
+            else:
+                data['error'] = 'Ha ocurrido un error'
+        except Exception as e:
+            data['error'] = str(e)
+        return JsonResponse(data, safe=False)
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Listado de Nota Ventas'
+        context['boton'] = 'Nota Credito Venta'
+        context['create_url'] = reverse_lazy('Agregar Nota Credito Venta')
+        context['list_url'] = reverse_lazy('Listado de Nota Credito Venta')
+        context['entity'] = 'Nota Credito Venta'
+
+        return context
+
+
+class NotaCreditoVentaCreateView(CreateView):
+    model = NotaCreditoVenta
+    form_class = NotaVentaForm
+    template_name = 'create_nota_venta.html'
+    success_url = reverse_lazy('Listado de Nota Credito Venta')
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        data = {}
+        try:
+            action = request.POST['action']
+            if action == 'add':
+                with transaction.atomic():
+                    vents = json.loads(request.POST['vent'])
+                    nota = NotaCreditoVenta()
+                    nota.fecha_emision_nota = vents['fecha_emision_nota']
+                    nota.total= vents['total']
+                    nota.save()
+                    for i in vents['products']:
+                        detnota = DetNotaCreditoVenta()
+                        detnota.notacredito_id = nota.id
+                        detnota.detventa_datos_id = i['id']
+                        detnota.sale_id =i['id']
+                        detnota.totalnota = i['subtotal']
+                        detnota.cantnota = i['cant']                   
+                        detnota.desc = i['desc']
+                        detnota.save()
+                    #data = {'id': nota.id}
+            elif action == 'search_products':
+                data = []
+                term = request.POST['term'].strip()
+                products = DetSale.objects.all()  # filter(stock__gt=0)
+                if len(term):
+                    products = DetSale.filter(id=term)
+                    
+                for i in products[0:10]:
+                    if (i.sale.es_procesado) == 'S':
+                        item = i.toJSON()
+                        item['value'] = i.id 
+                        item['id'] = str(i.sale_id).zfill(6)
+                        item['cli']=i.sale.cli.nombre
+                        item['total'] = i.sale.total
+                        #item['subtotal'] = i.compra.subtotal
+                        # item['text'] = i.name
+                        data.append(item)
+            else:
+                data['error'] = 'No ha ingresado a ninguna opción'
+        except Exception as e:
+            data['error'] = str(e)
+        return JsonResponse(data, safe=False)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Agregar Nota'
+        context['list_url'] = self.success_url
+        context['action'] = 'add'
+        context['entity'] = 'Nota'
+        return context
+
+
+
 class SaleInvoicePdfView(View):
     model = Sale
     form_class = SaleForm
@@ -295,7 +401,6 @@ class SaleInvoicePdfView(View):
         Convert HTML URIs to absolute system paths so xhtml2pdf can access those
         resources
         """
-        print('link_callback')
         # use short variable names
         sUrl = settings.STATIC_URL  # Typically /static/
         sRoot = settings.STATIC_ROOT  # Typically /home/userX/project_static/
@@ -318,14 +423,43 @@ class SaleInvoicePdfView(View):
         return path
 
     def get(self, request, *args, **kwargs):
-        print('get')
         Venta = Sale.objects.get(pk=self.kwargs['pk']).id
         DetVenta = DetSale.objects.all().filter(sale_id=Venta)
         estado_fact = Sale.objects.get(pk=self.kwargs['pk']).es_procesado
+        empresa_datos = Empresa.objects.all()
+        fecha_hoy = datetime.today().strftime('%Y-%m-%d')
+        nombre_empresa=''
+        ruc_empresa=''
+        direccion_empresa=''
+        timbrado_empresa =''
+
+        for e in empresa_datos:
+            if e.estado =='A':
+                empresa_venc = e.fecha_vencimiento
+                if str(fecha_hoy) <= str(empresa_venc):
+                    nuevo_timb = e.timbrado+1
+                    nombre_empresa=e.nombre
+                    ruc_empresa=e.ruc
+                    direccion_empresa=e.direccion
+                    e.timbrado = nuevo_timb
+                    timbrado_empresa = e.establecimiento +' - '+ e.punto_expedicion +' - '+ str(nuevo_timb).zfill(6)
+                    e.estado = 'A'
+                    e.save()
+                else:
+                    nombre_empresa=e.nombre
+                    ruc_empresa=e.ruc
+                    direccion_empresa=e.direccion
+                    timbrado_empresa = e.establecimiento +' - '+ e.punto_expedicion +' - '+ str(e.timbrado).zfill(6)+' TIMBRADO VENCIDO'
+                    e.estado = 'I'
+                    e.save()
+            else:
+                    nombre_empresa=e.nombre
+                    ruc_empresa=e.ruc
+                    direccion_empresa=e.direccion
+                    timbrado_empresa = e.establecimiento +' - '+ e.punto_expedicion +' - '+ str(e.timbrado).zfill(6)+' TIMBRADO VENCIDO'
+
         if estado_fact == 'N':
             for i in DetVenta:
-                print(i.cant)
-                print(i.prod.stock)
                 i.prod.stock = i.prod.stock - i.cant
                 i.sale.es_procesado = 'S'
                 i.prod.save()
@@ -337,8 +471,9 @@ class SaleInvoicePdfView(View):
 
             context = {
                 'sale': Sale.objects.get(pk=self.kwargs['pk']),
-                'comp': {'name': 'AguaMarina', 'ruc': '9999999999999',
-                         'address': 'Avda Fernando de la Mora esq Taruma'},
+                'comp': {'name': nombre_empresa, 'ruc': ruc_empresa,
+                         'address': direccion_empresa,
+                         'timbrado':timbrado_empresa},
                 'icon': '{}{}'.format(settings.MEDIA_URL, 'logo.png')
             }
             html = template.render(context)
@@ -352,3 +487,185 @@ class SaleInvoicePdfView(View):
         except:
             pass
         return HttpResponseRedirect(reverse_lazy('Listado de Venta'))
+
+
+class dashventaview(ListView):
+    model = Sale
+    template_name = 'dashboard_venta.html'
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        data = {}
+        try:
+            action = request.POST['action']
+            if action == 'totalventa':
+                datos = []
+                a=0
+                enero=0;febrero=0;marzo=0;abril=0;mayo=0;junio=0;julio=0;agosto=0;septiembre=0;octubre=0;noviembre=0;diciembre=0
+
+                for i in Sale.objects.all():
+                    if i.date_joined.year == datetime.today().year:
+                        if i.date_joined.month == 1:
+                            enero+=i.total
+                        elif i.date_joined.month== 2:
+                            febrero+=i.total
+                        elif i.date_joined.month== 3:
+                            marzo+=i.total
+                        elif i.date_joined.month== 4:
+                            abril+=i.total
+                        elif i.date_joined.month== 5:
+                            mayo+=i.total
+                        elif i.date_joined.month== 6:
+                            junio+=i.total
+                        elif i.date_joined.month== 7:
+                            julio+=i.total
+                        elif i.date_joined.month== 8:
+                            agosto+=i.total
+                        elif i.date_joined.month== 9:
+                            septiembre+=i.total
+                        elif i.date_joined.month== 10:
+                            octubre+=i.total
+                        elif i.date_joined.month== 11:
+                            noviembre+=i.total
+                        elif i.date_joined.month== 12:
+                            diciembre+=i.total
+                datos.append(enero);datos.append(febrero);datos.append(marzo);datos.append(abril);datos.append(mayo);datos.append(junio)
+                datos.append(julio);datos.append(agosto);datos.append(septiembre);datos.append(octubre);datos.append(noviembre);datos.append(diciembre)
+            elif action == 'totalsemana':
+                print('totalsemana')
+                datos = []
+                a=0
+                lunes=0;martes=0;miercoles=0;jueves=0;viernes=0;sabado=0;domingo=0
+                cant_lunes=0;cant_martes=0;cant_miercoles=0;cant_jueves=0;cant_viernes=0;cant_sabado=0;cant_domingo=0
+                today_date = date.today()
+                print('antes del if')
+                if datetime.today().isoweekday() == 1:
+                    td_dom = timedelta(6)
+                    lunes_semana = today_date
+                    domingo_semana = today_date + td_dom
+                if datetime.today().isoweekday()== 2:
+                    td_lun = timedelta(1)
+                    td_dom = timedelta(5)
+                    lunes_semana = today_date - td_lun
+                    domingo_semana = today_date + td_dom
+                if datetime.today().isoweekday()== 3:
+                    td_lun = timedelta(2)
+                    td_dom = timedelta(4)
+                    lunes_semana = today_date - td_lun
+                    domingo_semana = today_date + td_dom
+                if datetime.today().isoweekday()== 4:
+                    td_lun = timedelta(3)
+                    td_dom = timedelta(3)
+                    lunes_semana = today_date - td_lun
+                    domingo_semana = today_date + td_dom
+                if datetime.today().isoweekday()== 5:
+                    td_lun = timedelta(4)
+                    td_dom = timedelta(2)
+                    lunes_semana = today_date - td_lun
+                    domingo_semana = today_date + td_dom
+                if datetime.today().isoweekday()== 6:
+                    td_lun = timedelta(5)
+                    td_dom = timedelta(1)
+                    lunes_semana = today_date - td_lun
+                    domingo_semana = today_date + td_dom
+                if datetime.today().isoweekday()== 7:
+                    td_lun = timedelta(6)
+                    lunes_semana = today_date - td_lun
+                    domingo_semana = today_date
+                    
+                # print('lunes'+str(lunes_semana))
+                # print('domingo'+str(domingo_semana))
+                # print('antes del for')
+                for i in Sale.objects.all(): 
+                    if i.date_joined.year == datetime.today().year:
+                        if i.date_joined.month == datetime.today().month:
+                            if (str(i.date_joined.strftime('%Y-%m-%d')) >= str(lunes_semana)) and (str(i.date_joined.strftime('%Y-%m-%d')) <= str(domingo_semana)):
+                                print('semana')
+                                if i.date_joined.isoweekday() == 1:
+                                    lunes+=i.total
+                                elif i.date_joined.isoweekday()== 2:
+                                    martes+=i.total
+                                elif i.date_joined.isoweekday()== 3:
+                                    miercoles+=i.total
+                                elif i.date_joined.isoweekday()== 4:
+                                    jueves+=i.total
+                                elif i.date_joined.isoweekday()== 5:
+                                    viernes+=i.total
+                                elif i.date_joined.isoweekday()== 6:
+                                    sabado+=i.total
+                                elif i.date_joined.isoweekday()== 7:
+                                    domingo+=i.total
+                datos.append(lunes);datos.append(martes);datos.append(miercoles);datos.append(jueves);datos.append(viernes);datos.append(sabado);datos.append(domingo)
+            elif action == 'prodmasvendido':
+                datos = []
+                tipos = []
+                cantidad = []
+                can_prod=0
+                today_date = date.today()
+
+                if datetime.today().isoweekday() == 1:
+                    td_dom = timedelta(6)
+                    lunes_semana = today_date
+                    domingo_semana = today_date + td_dom
+                elif datetime.today().isoweekday()== 2:
+                    td_lun = timedelta(1)
+                    td_dom = timedelta(5)
+                    lunes_semana = today_date - td_lun
+                    domingo_semana = today_date + td_dom
+                elif datetime.today().isoweekday()== 3:
+                    td_lun = timedelta(2)
+                    td_dom = timedelta(4)
+                    lunes_semana = today_date - td_lun
+                    domingo_semana = today_date + td_dom                         
+                elif datetime.today().isoweekday()== 4:
+                    td_lun = timedelta(3)
+                    td_dom = timedelta(3)
+                    lunes_semana = today_date - td_lun
+                    domingo_semana = today_date + td_dom
+                elif datetime.today().isoweekday()== 5:
+                    td_lun = timedelta(4)
+                    td_dom = timedelta(2)
+                    lunes_semana = today_date - td_lun
+                    domingo_semana = today_date + td_dom
+                elif datetime.today().isoweekday()== 6:
+                    td_lun = timedelta(5)
+                    td_dom = timedelta(1)
+                    lunes_semana = today_date - td_lun
+                    domingo_semana = today_date + td_dom
+                elif datetime.today().isoweekday()== 7:
+                    td_lun = timedelta(6)
+                    lunes_semana = today_date - td_lun
+                    domingo_semana = today_date
+
+                #se almacena los tipos de productos
+                for t in Producto.objects.all():
+                    tipos.append(t.tipo_producto.nombre)
+                for e in tipos:
+                    for d in DetSale.objects.all():
+                        if d.sale.date_joined.year == datetime.today().year:
+                            if d.sale.date_joined.month == datetime.today().month:
+                                if (str(d.sale.date_joined.strftime('%Y-%m-%d')) >= str(lunes_semana)) and (str(d.sale.date_joined.strftime('%Y-%m-%d')) <= str(domingo_semana)):
+                                    if str(d.prod.tipo_producto.nombre) == str(e):
+                                        can_prod+=d.cant
+                    cantidad.append(can_prod)
+                    can_prod=0
+                largo = range(len(cantidad))
+                print(largo)
+                for a in largo:
+                    if a % 2 == 0:
+                        datos.append(tipos[a])
+                        datos.append(cantidad[a])
+                    else:
+                        datos.append(tipos[a])
+                        datos.append(cantidad[a])
+
+            else:
+                data['error'] = 'Ha ocurrido un error'
+        except Exception as e:
+            data['error'] = str(e)
+        return JsonResponse(datos, safe=False)
+
+

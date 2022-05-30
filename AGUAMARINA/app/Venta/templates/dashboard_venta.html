@@ -1,0 +1,330 @@
+{% extends 'layout.html' %}
+
+
+
+
+{% block contenido %}
+<div class="card-body">
+    <!-- <canvas id="myChart" width="100" height="100"></canvas> -->
+</div>
+
+
+<div class="card card-primary">
+    <div class="card-header">
+        <h3 class="card-title">
+            {% if action == 'add' %}
+                <i class="fas fa-plus"></i>
+            {% else %}
+                <i class="fas fa-edit"></i>
+            {% endif %}
+            {{ title }}
+        </h3>
+    </div>
+    <div class="card-body">
+        <div class="card card-secondary">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-shopping-cart"></i> Ventas en el año</h3>
+            </div>
+            <div class="card-body">
+                <input type="hidden" name="action" value="{{ action }}">
+                <div class="form-group">
+                    <div class="col-lg-3">
+                            <!-- <div>
+                                <input type='checkbox' name='delete_convos[]' value='{$pms[pm_loop].pmconvo_id}' id="chk"> 
+                                <label>Ventas semanales</label>
+                            </div>                                        -->
+                    </div>
+                    <canvas id="myChart" width="300" height="50" align="center"></canvas>
+                    
+                </div>
+            </div>
+        </div>
+<!-- grafico semanal -->
+        <!-- <div class="col-lg"> -->
+            <!-- <div class="card card-secondary "  id="mail_delete_button" style="display: none;"> -->
+            <div class="card card-secondary "></div>
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-boxes"></i> Ventas de la semana</h3>
+                </div>
+                <div class="card-body ">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="col-lg-8">
+
+                                <label>Venta en la semana</label>
+                                <div> <canvas id="semana" width="100" height="50" align="center"></canvas></div>
+                            </div>
+                            <hr>
+                            <div class="col-lg-4">
+                                <br><br><br><br><br><br><br>
+                                    <label>Cantidad de productos vendidos</label>
+                                    <br>
+                                    <div><canvas id="productos" width="100" height="50" align="center"></canvas></div> 
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <!-- </div> -->
+
+    <div class="card-footer">
+        <a href="{% url 'Grafico Venta' %}" class="btn btn-success btn-flat">
+            <i class="fas fa-sync"></i> Actualizar
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block javascript %}
+<script type="application/javascript">
+        // document.getElementById("chk").onclick = function() {
+        //     if(this.checked)
+        //         document.getElementById('mail_delete_button').style.display = "block";
+
+        //     else
+        //         document.getElementById('mail_delete_button').style.display = "none";
+                
+        // }
+        //grafico ventas mensuales
+        var ctx= document.getElementById("myChart").getContext("2d");
+        steps = 10;
+            $(function(array){
+                $.ajax(
+                        {
+                        type: "POST",
+                        url: window.location.pathname,
+                        async : false, 
+                        data: {
+                            'action': "totalventa"
+                        },
+                        success: function(response)
+                        {
+                          console.log(response)
+                           var myChart= new Chart(ctx,{
+                                type:"bar",
+                                data:{
+                                    labels:['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+                                    //fill: false,
+                                    datasets:[{
+                                            label:'Venta del año',
+                                            //data: [valores],
+                                            data:[response['0'], response['1'], response['2'],response['3'],response['4'], response['5'], response['6'], response['7'], response['8'], response['9'], response['10'], response['11']],
+                                            backgroundColor:[
+                                            'rgba(255, 99, 132, 0.2)',
+                                            'rgba(255, 159, 64, 0.2)',
+                                            'rgba(255, 205, 86, 0.2)',
+                                            'rgba(75, 192, 192, 0.2)',
+                                            'rgba(54, 162, 235, 0.2)',
+                                            'rgba(153, 102, 255, 0.2)',
+                                            'rgba(201, 203, 207, 0.2)',
+                                            'rgba(255, 205, 86, 0.2)',
+                                            'rgba(75, 192, 192, 0.2)',
+                                            'rgba(54, 162, 235, 0.2)',
+                                            'rgba(153, 102, 255, 0.2)',
+                                            'rgba(201, 203, 207, 0.2)'
+                                            ],
+                                    borderColor: [
+                                        'rgb(255, 99, 132)',
+                                        'rgb(255, 159, 64)',
+                                        'rgb(255, 205, 86)',
+                                        'rgb(75, 192, 192)',
+                                        'rgb(54, 162, 235)',
+                                        'rgb(153, 102, 255)',
+                                        'rgb(201, 203, 207)',
+                                        'rgb(255, 159, 64)',
+                                        'rgb(255, 205, 86)',
+                                        'rgb(75, 192, 192)',
+                                        'rgb(54, 162, 235)',
+                                        'rgb(153, 102, 255)',
+                                        'rgb(201, 203, 207)'
+                                    ],
+                                    borderWidth: 2
+                                    }]
+                                },
+                                options:{
+                                    scales:{
+                                        yAxes:[{
+                                                ticks:{
+                                                    beginAtZero:true
+                                                }
+                                        }]
+                                    }
+                                }
+                            });
+
+
+
+
+                        },
+                        error: function(data)
+                        {
+                            console.log("error");
+                        },
+                    });
+            });
+
+                        
+
+//// grafico semanal
+        var sem= document.getElementById("semana").getContext("2d");
+        steps = 10;
+        $(function(array){
+                        $.ajax(
+                                {
+                                type: "POST",
+                                url: window.location.pathname,
+                                async : false, 
+                                data: {
+                                    'action': "totalsemana"
+                                },
+                                success: function(response)
+                                {
+                                console.log(response)
+                                var myChart= new Chart(sem,{
+                                        type:"bar",
+                                        data:{
+                                            labels:['Lunes','Martes','Miercoles','Jueves','Viernes','Sabado','Domingo'],
+                                            datasets:[{
+                                                    label:'Ventas de la semana',
+                                                    data:[response['0'], response['1'], response['2'],response['3'],response['4'], response['5'], response['6']],
+                                                    backgroundColor:[
+                                                    'rgba(255, 99, 132, 0.2)',
+                                                    'rgba(255, 159, 64, 0.2)',
+                                                    'rgba(255, 205, 86, 0.2)',
+                                                    'rgba(75, 192, 192, 0.2)',
+                                                    'rgba(54, 162, 235, 0.2)',
+                                                    'rgba(153, 102, 255, 0.2)',
+                                                    'rgba(201, 203, 207, 0.2)'
+                                                    ],
+                                            borderColor: [
+                                                'rgb(255, 99, 132)',
+                                                'rgb(255, 159, 64)',
+                                                'rgb(255, 205, 86)',
+                                                'rgb(75, 192, 192)',
+                                                'rgb(54, 162, 235)',
+                                                'rgb(153, 102, 255)',
+                                                'rgb(201, 203, 207)'
+                                            ],
+                                            borderWidth: 2
+                                            }]
+                                        },
+                                        options:{
+                                            scales:{
+                                                yAxes:[{
+                                                        ticks:{
+                                                            beginAtZero:true
+                                                        }
+                                                }]
+                                            }
+                                        }
+                                    });
+
+
+                                },
+                                error: function(data)
+                                {
+                                    console.log("error");
+                                },
+                            });
+                    });
+
+
+
+
+
+//// grafico productos mas vendidos
+        var product= document.getElementById("productos").getContext("2d");
+        steps = 10;
+        
+        $(function(array){
+                        $.ajax(
+                                {
+                                type: "POST",
+                                url: window.location.pathname,
+                                async : false, 
+                                data: {
+                                    'action': "prodmasvendido"
+                                },
+                                success: function(response)
+                                {
+                                var datosvalor =[]; //array para almacenar los valores de la cantidad
+                                var datoslabel =[]; // array para almacenar los tipos de producto para el label
+                                for (let step = 0; step < response.length; step++) {
+                                    if (step % 2 == 1) {
+                                        datosvalor.push(response[step]);
+
+                                    }else {
+                                        datoslabel.push(response[step]);
+                                    }
+                                    
+                                }
+                                console.log(datoslabel)
+                                var myChart= new Chart(product,{
+                                            type:"pie",
+                                            data:{
+                                                labels:datoslabel,
+                                                datasets:[{
+                                                        label:'Productos vendidos',
+                                                        data:datosvalor,
+                                                        backgroundColor:[
+                                                        'rgba(255, 99, 132, 0.2)',
+                                                        'rgba(255, 159, 64, 0.2)',
+                                                        'rgba(255, 205, 86, 0.2)',
+                                                        'rgba(75, 192, 192, 0.2)',
+                                                        'rgba(54, 162, 235, 0.2)'
+                                                        ],
+                                                borderColor: [
+                                                    'rgb(255, 99, 132)',
+                                                    'rgb(255, 159, 64)',
+                                                    'rgb(255, 205, 86)',
+                                                    'rgb(75, 192, 192)',
+                                                    'rgb(54, 162, 235)'
+                                                ],
+                                                borderWidth: 2
+                                                }]
+                                            },
+                                            options:{
+                                                scales:{
+                                                    yAxes:[{
+                                                            ticks:{
+                                                                beginAtZero:true
+                                                            }
+                                                    }]
+                                                }
+                                            }
+                                        });
+
+                                },
+                                error: function(data)
+                                {
+                                    console.log("error");
+                                },
+                            });
+                    });
+
+    $('form').on('submit', function(e) {
+        e.preventDefault();
+        var parameters = $(this).serializeArray();
+        $.ajax({
+                url: window.location.pathname,
+                type: 'POST',
+                data: parameters,
+                dataType: 'json'
+            }).done(function (data) {
+                if(!data.hasOwnProperty('error')){
+                    location.href='{{ list_url }}';
+                    return false;
+                }
+                message_error(data.error);
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                alert(textStatus+': '+errorThrown);
+            }).always(function (data) {
+                alert('done');
+            });
+
+        });
+
+</script>
+{% endblock %}

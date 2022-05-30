@@ -1,0 +1,45 @@
+{% extends 'list.html' %}
+
+{% block columnas %}
+    <tr>
+        <th scope="col">Nro</th>
+        <th scope="col">RUC</th>
+        <th scope="col">Fecha de valides</th>
+        <th scope="col">Direccion</th>
+        <th scope="col">Telefono</th>
+        <th scope="col">Estado</th>
+        <th scope="col">Ingresado</th>
+        <th scope="col">Opciones</th>
+    </tr>
+{% endblock %}
+
+{% block filas %}
+    {% for empresa in object_list %}
+        <tr>
+            <td>{{ empresa.id }}</td>
+            <td>{{ empresa.ruc }}</td>
+            <td>{{ empresa.fecha_vencimiento }}</td>
+            <td>{{ empresa.direccion }}</td>
+            <td>{{ empresa.telefono }}</td>
+            <td> 
+                {% if empresa.estado == "A"  %}
+                    {{ 'Activo' }}
+                {% endif %}
+                {% if empresa.estado == "I"  %}
+                    {{ 'Inactivo' }}
+                {% endif %}
+            </td>
+            <td>{{ empresa.ingresado }}</td>
+            <td>
+                <a href="{% url 'Editar Empresas' empresa.id %}" class="btn btn-warning btn-xs">
+                    <i class="fas fa-edit"></i></a>
+                <a href="{% url 'Eliminar Empresas' empresa.id %}" class="btn btn-danger btn-xs">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+
+
+

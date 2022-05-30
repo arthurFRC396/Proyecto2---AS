@@ -51,7 +51,8 @@ class DetSale(models.Model):
         # models.DecimalField(default=0.00, max_digits=9, decimal_places=2)
 
     def __str__(self):
-        return self.prod.nombre
+        #return self.prod.nombre
+        return  str(self.id).zfill(6)
 
     def toJSON(self):
         item = model_to_dict(self, exclude=['sale'])
@@ -63,4 +64,49 @@ class DetSale(models.Model):
     class Meta:
         verbose_name = 'Detalle de Venta'
         verbose_name_plural = 'Detalle de Ventas'
+        ordering = ['id']
+
+
+class NotaCreditoVenta(models.Model):
+    desc_nota = models.CharField(max_length=150, null=True, blank=True, verbose_name='desc')
+    fecha_emision_nota = models.DateField(default=datetime.now)
+    total = models.DecimalField(default=0.00, max_digits=9, decimal_places=2)
+    nro_factura = models.IntegerField(default=0)
+    cant = models.IntegerField(default=0)
+
+    def __str__(self):
+        return str(self.id).zfill(6)
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['desc_nota'] = self.desc_nota
+        return item
+
+    class Meta:
+        verbose_name = 'Nota Credito Venta'
+        verbose_name_plural = 'Notas Credito Ventas'
+        ordering = ['id']
+
+class DetNotaCreditoVenta(models.Model):
+    detventa_datos = models.ForeignKey(DetSale, on_delete=models.CASCADE)
+    notacredito = models.ForeignKey(NotaCreditoVenta, on_delete=models.CASCADE)
+    cantnota = models.IntegerField(default=0)
+    totalnota = models.DecimalField(default=0.00, max_digits=9, decimal_places=2)
+    desc = models.CharField(max_length=150, null=True, blank=True, verbose_name='desc')
+
+    def __str__(self):
+        return  self.id
+
+
+    def toJSON(self):
+        item = model_to_dict(self)
+        item['prod'] = self.detventa_datos.prod.toJSON()
+        item['price'] = format(self.detventa_datos.price, '.2f')
+        item['totalnota'] = format(self.totalnota, '.2f')
+        item['detventa_datos_id'] = str(self.detventa_datos_id).zfill(6)
+        return item
+
+    class Meta:
+        verbose_name = 'Detalle de Nota Credito Venta'
+        verbose_name_plural = 'Detalles de Nota Credito Venta'
         ordering = ['id']

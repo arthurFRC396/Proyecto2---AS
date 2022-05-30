@@ -69,27 +69,26 @@
                                     {{ form.prov_datos }}
                                 </div>
 
-                                <div class="col-lg-3" id = check>
-                                    <label>Condicion de pago:</label>
-                                        {{form.pago}}
-                                </div>
-
                                 <div class="col-lg-3">
+                                    <label>Condicion de pago:</label>
+                                        <!-- {{form.pago}} -->
+                                        <div>
+                                            <input type='checkbox' name='delete_convos[]' value='{$pms[pm_loop].pmconvo_id}' id="chk"> <label>Credito</label>
+                                        </div>                                       
+                                </div>
+                            </div>
+                        </div>
+
+                            <div class="form-group">
+                                <div class="col-lg-3"   id="mail_delete_button" style="display: none;">
                                     <label>Cantidad de cuotas:</label>
                                         {{ form.cant_cuota }}
                                 </div>
-                                <div class="col-lg-3">
-                                    <label>Nro Factura</label>
-                                        {{ nro_factura}}
+                                <div class="col-lg-2">
+                                    <label>Total a pagar:</label>
+                                    {{ form.total }}
                                 </div>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="col-lg-2">
-                                <label>Total a pagar:</label>
-                                {{ form.total }}
-                            </div>
-                        </div>
                     </div>
                 </div>
                 <!-- {#            </div>#}
@@ -220,11 +219,12 @@
     </div>
 
     <script >
-             // Se removio el compr.list(); para calcular bien el iva en el editar. Revisar al final del archivo form.js se lo puso.
+
     </script>
 {% endblock %}
 {% block javascript %}
     <script type="application/javascript">
+        
         $(function () {
             $('.select2').select2({
                 theme: "bootstrap4",
@@ -243,6 +243,20 @@
             locale: 'es',
             minDate: moment().format("YYYY-MM-DD")
         });
+
+        var tipopago ='Contado';
+        document.getElementById("chk").onclick = function() {
+            tipopago='Credito';
+            if(this.checked)
+                document.getElementById('mail_delete_button').style.display = "block";
+
+            else
+                document.getElementById('mail_delete_button').style.display = "none";
+                
+        }
+        
+
+        
         // -------------------------------- Logica --------------------------------------------------
 
         var tblSearchProducts;
@@ -256,6 +270,7 @@
                 subtotal: 0.00,
                 iva: 0.00,
                 total: 0.00,
+                cant_cuota:0,
                 products: []
             },
             //Calculo de la factura
@@ -506,7 +521,8 @@
             compr.items.date_joined = $('input[name="date_joined"]').val();
             compr.items.cli = $('select[name="cli"]').val();
             compr.items.prov_datos = $('select[name="prov_datos"]').val();
-            compr.items.pago = $('select[name="pago"]').val();
+            compr.items.pago = tipopago;
+            compr.items.cant_cuota = $('select[name="cant_cuota"]').val();
             var parameters = new FormData();
             parameters.append('action', $('input[name="action"]').val());
             parameters.append('compr', JSON.stringify(compr.items));

@@ -10,12 +10,14 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, V
 from Compra.forms import CompraForm,NotaCompraForm
 from Compra.models import Compra, DetCompra,NotaCreditoCompra,DetNotaCreditoCompra
 from Producto.models import Producto
+from Empresa.models import Empresa
 import json
 import os
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template.loader import get_template
 from xhtml2pdf import pisa
+from datetime import datetime
 
 
 class CompraListview(ListView):
@@ -82,6 +84,7 @@ class CompraCreateView(CreateView):
                     compra.prov_datos_id = vents['prov_datos']
                     compra.pago = vents['pago']
                     compra.subtotal = float(vents['subtotal'])
+                    compra.cant_cuota = int(vents['cant_cuota'])
                     compra.iva = float(vents['iva'])
                     compra.total = float(vents['total'])
                     compra.save()
@@ -146,6 +149,7 @@ class CompraUpdateView(UpdateView):
                     compra.iva = float(vents['iva'])
                     compra.total = float(vents['total'])
                     compra.save()
+                    compra.detcompra_set.all().delete()
                     for i in vents['products']:
                         det = DetCompra()
                         det.compra_id = compra.id
@@ -234,22 +238,15 @@ class NotaCompraListview(ListView):
         try:
             action = request.POST['action']
             if action == 'searchdata':
-                print('entra a searchdata')
+                # print('entra a searchdata')
                 data = []
                 for i in NotaCreditoCompra.objects.all():
-                    #i.id =str(i.detcompra_datos.id).zfill(6)
-                   # print(i.id)
-                    #print(i.total)
                     data.append(i.toJSON())
-                    #for j in DetNotaCreditoCompra.objects.all():
-                #.filter(notacredito_id=request.POST['id']):
-                        #print(j.notacredito_id)
-                        #data.append(j.toJSON()) 
             elif action == 'search_details_prod':
-                print('entra a search_details_prod')
+                # print('entra a search_details_prod')
                 data = []
                 for i in DetNotaCreditoCompra.objects.filter(notacredito_id=request.POST['id']):
-                    print(i.totalnota)
+                    # print(i.totalnota)
                     data.append(i.toJSON())    
             else:
                 data['error'] = 'Ha ocurrido un error'
@@ -284,16 +281,14 @@ class NotaCreditoProveedorCreateView(CreateView):
         try:
             action = request.POST['action']
             if action == 'add':
-                print('entra en add')
+                # print('entra en add')
                 with transaction.atomic():
                     vents = json.loads(request.POST['compr'])
-                    #nota = NotaCreditoCompra.objects.all()
                     nota = NotaCreditoCompra()
                     nota.fecha_emision_nota = vents['fecha_emision_nota']
                     nota.total= vents['total']
                     nota.save()
                     for i in vents['products']:
-                        #nota = NotaCreditoCompra()
                         detnota = DetNotaCreditoCompra()
                         detnota.notacredito_id = nota.id
                         detnota.detcompra_datos_id = i['id']
@@ -309,15 +304,17 @@ class NotaCreditoProveedorCreateView(CreateView):
                 products = DetCompra.objects.all()  # filter(stock__gt=0)
                 if len(term):
                     products = DetCompra.filter(id=term)
+                    
                 for i in products[0:10]:
-                    item = i.toJSON()
-                    item['value'] = i.id 
-                    item['id'] = str(i.compra_id).zfill(6)
-                    item['prov_datos']=i.compra.prov_datos.nombre
-                    item['total'] = i.compra.total
-                    #item['subtotal'] = i.compra.subtotal
-                    # item['text'] = i.name
-                    data.append(item)
+                    if (i.compra.es_procesado) == 'S':
+                        item = i.toJSON()
+                        item['value'] = i.id 
+                        item['id'] = str(i.compra_id).zfill(6)
+                        item['prov_datos']=i.compra.prov_datos.nombre
+                        item['total'] = i.compra.total
+                        #item['subtotal'] = i.compra.subtotal
+                        # item['text'] = i.name
+                        data.append(item)
             else:
                 data['error'] = 'No ha ingresado a ninguna opción'
         except Exception as e:
@@ -381,7 +378,37 @@ class SaleInvoicePdfView(View):
         compra = Compra.objects.get(pk=self.kwargs['pk']).id
         Detcompra = DetCompra.objects.all().filter(compra_id=compra)
         estado_fact = Compra.objects.get(pk=self.kwargs['pk']).es_procesado
-        print(estado_fact)
+        empresa_datos = Empresa.objects.all()
+        fecha_hoy = datetime.today().strftime('%Y-%m-%d')
+        nombre_empresa=''
+        ruc_empresa=''
+        direccion_empresa=''
+        timbrado_empresa =''
+
+        for e in empresa_datos:
+            if e.estado =='A':
+                empresa_venc = e.fecha_vencimiento
+                if str(fecha_hoy) <= str(empresa_venc):
+                    nuevo_timb = e.timbrado+1
+                    nombre_empresa=e.nombre
+                    ruc_empresa=e.ruc
+                    direccion_empresa=e.direccion
+                    e.timbrado = nuevo_timb
+                    timbrado_empresa = e.establecimiento +' - '+ e.punto_expedicion +' - '+ str(nuevo_timb).zfill(6)
+                    e.save()
+                else:
+                    nombre_empresa=e.nombre
+                    ruc_empresa=e.ruc
+                    direccion_empresa=e.direccion
+                    timbrado_empresa = e.establecimiento +' - '+ e.punto_expedicion +' - '+ str(e.timbrado).zfill(6)+' TIMBRADO VENCIDO'
+                    e.estado = 'I'
+                    e.save()
+            else:
+                    nombre_empresa=e.nombre
+                    ruc_empresa=e.ruc
+                    direccion_empresa=e.direccion
+                    timbrado_empresa = e.establecimiento +' - '+ e.punto_expedicion +' - '+ str(e.timbrado).zfill(6)+' TIMBRADO VENCIDO'
+
         if estado_fact == 'N':
             for i in Detcompra:
                i.prod.stock = i.prod.stock + i.cant
@@ -392,8 +419,9 @@ class SaleInvoicePdfView(View):
             template = get_template('invoice_compra.html')
             context = {
                 'compra': Compra.objects.get(pk=self.kwargs['pk']),
-                'comp': {'name': 'AguaMarina', 'ruc': '9999999999999',
-                         'address': 'Avda Fernando de la Mora esq Taruma'},
+                'comp': {'name': nombre_empresa, 'ruc': ruc_empresa,
+                         'address': direccion_empresa,
+                         'timbrado':timbrado_empresa},
                 'icon': '{}{}'.format(settings.MEDIA_URL, 'logo.png')
             }
             html = template.render(context)
