@@ -143,4 +143,4 @@ class UserChangeGroup(LoginRequiredMixin, View):
             request.session['group'] = Group.objects.get(pk=self.kwargs['pk'])
         except:
             pass
-        return HttpResponseRedirect(reverse_lazy('dashboard'))
+        return HttpResponseRedirect(reverse_lazy('Grafico Venta'))
