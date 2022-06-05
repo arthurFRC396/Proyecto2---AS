@@ -219,7 +219,7 @@ class CajaCerrarView(UpdateView):
                     if i.status == '1': 
                         i.fecha_cierre = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                         i.monto_final = monto_finals - i.monto_inicial
-                        i.total_venta = total_ventas
+                        i.total_venta = monto_finals
                         i.status = 2
                         i.save()
                 # c.monto_final=
